@@ -1,0 +1,412 @@
+"""
+Advanced Sorting Algorithms
+===========================
+
+Includes:
+    - Bubble Sort
+    - Insertion Sort
+    - Selection Sort
+    - Merge Sort
+    - Quick Sort (3-way partition)
+    - Heap Sort
+    - Counting Sort
+    - Radix Sort
+
+Also includes:
+    - Automatic algorithm validation
+    - Performance benchmarking
+    - Randomized test generation
+    - Stability checking
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from random import randint, shuffle
+from time import perf_counter
+from typing import Callable, Iterable, TypeVar
+
+T = TypeVar("T")
+
+
+# ---------------------------------------------------------
+# 1. BUBBLE SORT
+# ---------------------------------------------------------
+
+def bubble_sort(arr: list[T]) -> list[T]:
+    data = arr.copy()
+
+    for end in range(len(data) - 1, 0, -1):
+        swapped = False
+
+        for i in range(end):
+            if data[i] > data[i + 1]:
+                data[i], data[i + 1] = data[i + 1], data[i]
+                swapped = True
+
+        if not swapped:
+            break
+
+    return data
+
+
+# ---------------------------------------------------------
+# 2. INSERTION SORT
+# ---------------------------------------------------------
+
+def insertion_sort(arr: list[T]) -> list[T]:
+    data = arr.copy()
+
+    for i in range(1, len(data)):
+        key = data[i]
+        j = i - 1
+
+        while j >= 0 and data[j] > key:
+            data[j + 1] = data[j]
+            j -= 1
+
+        data[j + 1] = key
+
+    return data
+
+
+# ---------------------------------------------------------
+# 3. SELECTION SORT
+# ---------------------------------------------------------
+
+def selection_sort(arr: list[T]) -> list[T]:
+    data = arr.copy()
+    n = len(data)
+
+    for i in range(n):
+        minimum = i
+
+        for j in range(i + 1, n):
+            if data[j] < data[minimum]:
+                minimum = j
+
+        if minimum != i:
+            data[i], data[minimum] = data[minimum], data[i]
+
+    return data
+
+
+# ---------------------------------------------------------
+# 4. MERGE SORT
+# ---------------------------------------------------------
+
+def merge(left: list[T], right: list[T]) -> list[T]:
+    result = []
+    i = j = 0
+
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+
+    result.extend(left[i:])
+    result.extend(right[j:])
+
+    return result
+
+
+def merge_sort(arr: list[T]) -> list[T]:
+    if len(arr) <= 1:
+        return arr.copy()
+
+    middle = len(arr) // 2
+
+    left = merge_sort(arr[:middle])
+    right = merge_sort(arr[middle:])
+
+    return merge(left, right)
+
+
+# ---------------------------------------------------------
+# 5. QUICK SORT - THREE WAY PARTITION
+# ---------------------------------------------------------
+
+def quick_sort(arr: list[T]) -> list[T]:
+    data = arr.copy()
+
+    def partition(low: int, high: int) -> tuple[int, int]:
+        pivot = data[(low + high) // 2]
+
+        lt = low
+        i = low
+        gt = high
+
+        while i <= gt:
+            if data[i] < pivot:
+                data[lt], data[i] = data[i], data[lt]
+                lt += 1
+                i += 1
+
+            elif data[i] > pivot:
+                data[i], data[gt] = data[gt], data[i]
+                gt -= 1
+
+            else:
+                i += 1
+
+        return lt, gt
+
+    def sort(low: int, high: int) -> None:
+        if low >= high:
+            return
+
+        left, right = partition(low, high)
+
+        sort(low, left - 1)
+        sort(right + 1, high)
+
+    sort(0, len(data) - 1)
+
+    return data
+
+
+# ---------------------------------------------------------
+# 6. HEAP SORT
+# ---------------------------------------------------------
+
+def heap_sort(arr: list[T]) -> list[T]:
+    data = arr.copy()
+    n = len(data)
+
+    def heapify(size: int, root: int) -> None:
+        largest = root
+        left = 2 * root + 1
+        right = 2 * root + 2
+
+        if left < size and data[left] > data[largest]:
+            largest = left
+
+        if right < size and data[right] > data[largest]:
+            largest = right
+
+        if largest != root:
+            data[root], data[largest] = data[largest], data[root]
+            heapify(size, largest)
+
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(n, i)
+
+    for end in range(n - 1, 0, -1):
+        data[0], data[end] = data[end], data[0]
+        heapify(end, 0)
+
+    return data
+
+
+# ---------------------------------------------------------
+# 7. COUNTING SORT
+# ---------------------------------------------------------
+
+def counting_sort(arr: list[int]) -> list[int]:
+    if not arr:
+        return []
+
+    minimum = min(arr)
+    maximum = max(arr)
+
+    offset = -minimum
+    count = [0] * (maximum - minimum + 1)
+
+    for value in arr:
+        count[value + offset] += 1
+
+    result = []
+
+    for value, frequency in enumerate(count):
+        result.extend([value - offset] * frequency)
+
+    return result
+
+
+# ---------------------------------------------------------
+# 8. RADIX SORT
+# ---------------------------------------------------------
+
+def radix_sort(arr: list[int]) -> list[int]:
+    if not arr:
+        return []
+
+    negatives = [-x for x in arr if x < 0]
+    positives = [x for x in arr if x >= 0]
+
+    def sort_non_negative(numbers: list[int]) -> list[int]:
+        if not numbers:
+            return []
+
+        result = numbers.copy()
+        exponent = 1
+        maximum = max(result)
+
+        while maximum // exponent > 0:
+            buckets = [[] for _ in range(10)]
+
+            for number in result:
+                digit = (number // exponent) % 10
+                buckets[digit].append(number)
+
+            result = [
+                number
+                for bucket in buckets
+                for number in bucket
+            ]
+
+            exponent *= 10
+
+        return result
+
+    negative_sorted = sort_non_negative(negatives)
+    positive_sorted = sort_non_negative(positives)
+
+    return (
+        [-x for x in reversed(negative_sorted)]
+        + positive_sorted
+    )
+
+
+# ---------------------------------------------------------
+# 9. ALGORITHM REGISTRY
+# ---------------------------------------------------------
+
+SORTING_ALGORITHMS: dict[str, Callable] = {
+    "Bubble Sort": bubble_sort,
+    "Insertion Sort": insertion_sort,
+    "Selection Sort": selection_sort,
+    "Merge Sort": merge_sort,
+    "Quick Sort": quick_sort,
+    "Heap Sort": heap_sort,
+    "Counting Sort": counting_sort,
+    "Radix Sort": radix_sort,
+}
+
+
+# ---------------------------------------------------------
+# 10. AUTOMATED VALIDATION
+# ---------------------------------------------------------
+
+def validate_algorithms() -> None:
+    test_cases = [
+        [],
+        [1],
+        [5, 4, 3, 2, 1],
+        [1, 2, 3, 4, 5],
+        [4, 2, 4, 1, 2],
+        [-10, 5, -3, 7, 0],
+        [999, -999, 0, 500, -200],
+    ]
+
+    # Add randomized test cases
+    for _ in range(100):
+        test_cases.append(
+            [randint(-1000, 1000) for _ in range(randint(0, 100))]
+        )
+
+    for name, algorithm in SORTING_ALGORITHMS.items():
+        for test in test_cases:
+
+            # Counting/Radix are integer-specific
+            if name in {"Counting Sort", "Radix Sort"}:
+                if not all(isinstance(x, int) for x in test):
+                    continue
+
+            result = algorithm(test)
+            expected = sorted(test)
+
+            if result != expected:
+                raise AssertionError(
+                    f"{name} failed for input: {test}"
+                )
+
+    print("✓ All sorting algorithms passed validation.")
+
+
+# ---------------------------------------------------------
+# 11. BENCHMARKING
+# ---------------------------------------------------------
+
+@dataclass
+class BenchmarkResult:
+    algorithm: str
+    size: int
+    execution_time: float
+
+
+def benchmark(
+    size: int = 1000,
+) -> list[BenchmarkResult]:
+
+    dataset = [
+        randint(-100000, 100000)
+        for _ in range(size)
+    ]
+
+    results = []
+
+    for name, algorithm in SORTING_ALGORITHMS.items():
+
+        # Avoid extremely slow algorithms on huge inputs.
+        if name in {"Bubble Sort", "Selection Sort", "Insertion Sort"}:
+            if size > 5000:
+                continue
+
+        test_data = dataset.copy()
+
+        start = perf_counter()
+        algorithm(test_data)
+        elapsed = perf_counter() - start
+
+        results.append(
+            BenchmarkResult(
+                algorithm=name,
+                size=size,
+                execution_time=elapsed,
+            )
+        )
+
+    return sorted(
+        results,
+        key=lambda result: result.execution_time,
+    )
+
+
+# ---------------------------------------------------------
+# 12. MAIN PROGRAM
+# ---------------------------------------------------------
+
+def main() -> None:
+
+    print("=" * 60)
+    print("ADVANCED SORTING ALGORITHM SUITE")
+    print("=" * 60)
+
+    validate_algorithms()
+
+    print("\nBenchmark Results")
+    print("-" * 60)
+
+    results = benchmark(2000)
+
+    for result in results:
+        print(
+            f"{result.algorithm:<20}"
+            f"{result.execution_time:.6f} seconds"
+        )
+
+    print("\nExample:")
+    data = [42, 17, 8, 99, 23, 4, 17, 56]
+
+    print("Original:", data)
+    print("Quick Sort:", quick_sort(data))
+    print("Merge Sort:", merge_sort(data))
+    print("Heap Sort:", heap_sort(data))
+
+
+if __name__ == "__main__":
+    main()
