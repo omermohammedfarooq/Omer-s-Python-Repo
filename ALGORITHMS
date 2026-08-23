@@ -269,6 +269,29 @@ def radix_sort(arr: list[int]) -> list[int]:
         [-x for x in reversed(negative_sorted)]
         + positive_sorted
     )
+# SHELL SORT
+def shell_sort(arr):
+    data = arr.copy()
+    gap = len(data) // 2
+
+    while gap > 0:
+        for i in range(gap, len(data)):
+            temp = data[i]
+            j = i
+
+            while j >= gap and data[j - gap] > temp:
+                data[j] = data[j - gap]
+                j -= gap
+
+            data[j] = temp
+
+        gap //= 2
+
+    return data
+
+
+
+
 
 
 # ---------------------------------------------------------
