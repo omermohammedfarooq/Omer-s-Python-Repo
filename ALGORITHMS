@@ -289,7 +289,38 @@ def shell_sort(arr):
 
     return data
 
+#add cocktail sort
 
+def cocktail_sort(arr):
+    data = arr.copy()
+    start = 0
+    end = len(data) - 1
+
+    while start < end:
+        swapped = False
+
+        for i in range(start, end):
+            if data[i] > data[i + 1]:
+                data[i], data[i + 1] = data[i + 1], data[i]
+                swapped = True
+
+        if not swapped:
+            break
+
+        end -= 1
+        swapped = False
+
+        for i in range(end, start, -1):
+            if data[i] < data[i - 1]:
+                data[i], data[i - 1] = data[i - 1], data[i]
+                swapped = True
+
+        start += 1
+
+        if not swapped:
+            break
+
+    return data
 
 
 
